@@ -1,49 +1,47 @@
 from flask import Blueprint, request, send_file
-from modelos import EstadoArchivosSchema,EstadoArchivos, db
+from modelos import EstadoArchivosSchema
+from celery import Celery
 import os
+from utils import FileUtils
 
 controllers = Blueprint('controllers', __name__)
 
 estado_archivo_schema = EstadoArchivosSchema()
+fileUtils = FileUtils()
+
+
+celery = Celery(__name__, broker='redis://localhost:6379/0')
+
+@celery.task(name='convertir_archivo')
+def convertir_archivo(*args):
+    pass
 
 @controllers.route('/procesar', methods=['POST'])
-def procesar_archivo():
-
-    ruta_relativa = os.path.join('.', 'files\original')
-    ruta_absoluta = os.path.abspath(ruta_relativa)
-
+def procesar_archivo(): 
 
     archivo = request.files['archivo']
     extension_convertir = request.form.get('extension_convertir')
 
     if archivo:
         nombre_del_archivo = archivo.filename
+        print('nombre archivo')
+        print(nombre_del_archivo.split('.')[0])
         extension_original = nombre_del_archivo.split('.')[-1]
+        mensaje = fileUtils.validar_request(extension_original, extension_convertir)
+        if mensaje == '':
 
+            fileUtils.guardar_archivo_original(archivo)
+            estado_archivo = fileUtils.crear_estado_documento(nombre_del_archivo, 'Ingresado', extension_original, extension_convertir)
+            convertir_archivo.apply_async(args=(estado_archivo.id, ''), queue='celery')
 
-        print(ruta_absoluta)
-        if not os.path.exists(ruta_absoluta):
-            os.makedirs(ruta_absoluta)
+        else:
+            return mensaje, 400
 
-        archivo_guardado = os.path.join(ruta_absoluta, archivo.filename)
-        print(archivo_guardado)
-        archivo.save(archivo_guardado)
-
-        estado_archivos = EstadoArchivos(
-            nombre_archivo=nombre_del_archivo,
-            extension_original=extension_original,
-            extension_nueva=extension_convertir,
-            estado='En progreso'
-        )
-
-        db.session.add(estado_archivos)
-        db.session.commit()
-
-    return estado_archivo_schema.dump(estado_archivos)
+    return estado_archivo_schema.dump(estado_archivo)
 
 @controllers.route('/obtener-documento/<int:id>', methods=['GET'])
 def encontrar_archivo(id):
-    estado = EstadoArchivos.query.get(id)
+    estado = fileUtils.obtener_estado_tareas_por_id(id)
     if estado:
         if estado.estado == 'convertido':
             ruta_relativa = os.path.join('.', 'files\convertido')

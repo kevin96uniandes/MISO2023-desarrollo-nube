@@ -3,3 +3,6 @@ Flask-Cors
 psycopg2
 Flask-SQLAlchemy
 marshmallow-sqlalchemy
+moviepy
+Celery
+Redis

@@ -3,7 +3,7 @@ from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from app import db
 from sqlalchemy import Enum
 
-EstadoEnum = Enum('En progreso', 'convertido', 'fallido')
+EstadoEnum = Enum('Ingresado','procesando', 'convertido', 'fallido')
 
 class EstadoArchivos(db.Model):
 
