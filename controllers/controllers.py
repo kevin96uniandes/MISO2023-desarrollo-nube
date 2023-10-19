@@ -1,15 +1,13 @@
 from flask import Blueprint, request, send_file
 from modelos import EstadoArchivosSchema
-import os
+import os, json
 from utils import FileUtils
-from cola import procesar_cola, insertar_cola
+from cola import insertar_cola
 
 controllers = Blueprint('controllers', __name__)
 
 estado_archivo_schema = EstadoArchivosSchema()
 fileUtils = FileUtils()
-
-procesar_cola()
 
 @controllers.route('/procesar', methods=['POST'])
 def procesar_archivo(): 
@@ -27,7 +25,8 @@ def procesar_archivo():
 
             fileUtils.guardar_archivo_original(archivo)
             estado_archivo = fileUtils.crear_estado_documento(nombre_del_archivo, 'Ingresado', extension_original, extension_convertir)
-            insertar_cola(estado_archivo.id)
+            mensaje = {"id": estado_archivo.id}
+            insertar_cola(json.dumps(mensaje))
         else:
             return mensaje, 400
 

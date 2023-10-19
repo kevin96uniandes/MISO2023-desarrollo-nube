@@ -19,3 +19,4 @@ def procesar_cola():
 
 def obtener_datos_cola(channel, method, properties, body):
     print("Mensaje recibido: %s" % body)
+    

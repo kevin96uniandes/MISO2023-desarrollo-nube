@@ -49,7 +49,7 @@ class FileUtils:
             return False
         
     def guardar_archivo_original(self, archivo):
-        ruta_relativa = os.path.join('.', 'files\original')
+        ruta_relativa = os.path.join('.', 'files/original')
         ruta_absoluta = os.path.abspath(ruta_relativa)
 
         print(ruta_absoluta)
