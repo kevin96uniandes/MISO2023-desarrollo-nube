@@ -1,31 +1,34 @@
 from moviepy.editor import VideoFileClip
+from datetime import datetime
 from modelos import EstadoArchivos, db
 import os
 import logging
 
 class FileUtils:
 
-    def convertir_archivo(self, id):
+    def procesar_elemento_cola(self, id):
         logging.info(f"ejecutando cola con id {id}")
 
         try: 
             estado_archivo = EstadoArchivos.query.get(id)
-            self.editar_estado_documento(estado_archivo.id, 'procesando')
+            self.editar_estado_documento(estado_archivo.id, 'procesando', '', datetime.now())
+            
+            nombre_archivo_convertido = f"{estado_archivo.id}_converted.{estado_archivo.extension_nueva}"
 
-            if estado_archivo.extension_convertir == 'mp4':
-                self.convertir_a_mp4(estado_archivo.nombre_del_archivo)
-            if estado_archivo.extension_convertir == 'webm':
-                self.convertir_a_webm(estado_archivo.nombre_del_archivo)
-            if estado_archivo.extension_convertir == 'avi':
-                self.convertir_a_avi(estado_archivo.nombre_del_archivo)
+            if estado_archivo.extension_nueva == 'mp4':
+                self.convertir_archivo(estado_archivo.nombre_archivo, nombre_archivo_convertido, 'libx264')
+            if estado_archivo.extension_nueva == 'webm':
+                self.convertir_archivo(estado_archivo.nombre_archivo, nombre_archivo_convertido, 'libvpx')
+            if estado_archivo.extension_nueva == 'avi':
+                self.convertir_archivo(estado_archivo.nombre_archivo, nombre_archivo_convertido, 'rawvideo')
 
-            self.editar_estado_documento(estado_archivo.id, 'convertido')
+            self.editar_estado_documento(estado_archivo.id, 'convertido', nombre_archivo_convertido,datetime.now())
 
             print(f"ejecutando cola con id {id} exitoso")
 
         except Exception as e:
-            print(f"error a la hora de procesar la cola con id {id}")
-            self.editar_estado_documento(estado_archivo.id, 'fallido')
+            print(f"error a la hora de procesar la cola con id {id} {e}")
+            self.editar_estado_documento(estado_archivo.id, 'fallido', '', datetime.now())
 
 
     def validar_request(self, extension_original, extension_convertir):
@@ -53,7 +56,7 @@ class FileUtils:
         ruta_relativa = os.path.join('.', 'files/original')
         ruta_absoluta = os.path.abspath(ruta_relativa)
 
-        print(ruta_absoluta)
+        logging.info(ruta_absoluta)
         if not os.path.exists(ruta_absoluta):
            os.makedirs(ruta_absoluta)
 
@@ -61,58 +64,36 @@ class FileUtils:
         print(archivo_guardado)
         archivo.save(archivo_guardado)
 
-    def convertir_a_mp4(self, nombre_archivo):
-        ruta_relativa_original = os.path.join('.', 'files\original')
+    def convertir_archivo(self, nombre_archivo, nombre_archivo_convertido, code):
+        ruta_relativa_original = os.path.join('.', 'files/original')
         ruta_absoluta_original = os.path.abspath(ruta_relativa_original)
-
-        ruta_relativa_convertido = os.path.join('.', 'files\convertido\ideo.mp4')
-        ruta_absoluta_convertido = os.path.abspath(ruta_relativa_convertido)
-
-        ruta_archivo_convertir = os.path.join(ruta_absoluta_original, nombre_archivo)
-
-        video = VideoFileClip(ruta_archivo_convertir)
-
-        video.write_videofile(ruta_relativa_convertido, codec='libx264')
-
-    def convertir_a_webm(self, nombre_archivo):
-
-        ruta_relativa_original = os.path.join('.', 'files\original')
-        ruta_absoluta_original = os.path.abspath(ruta_relativa_original)
-
-        ruta_relativa_convertido = os.path.join('.', 'files\convertido\ideo.webm')
-        ruta_absoluta_convertido = os.path.abspath(ruta_relativa_convertido)
-
-        ruta_archivo_convertir = os.path.join(ruta_absoluta_original, nombre_archivo)
-
-        print('ruta_archivo_convertir')
-        print(ruta_archivo_convertir)
-
-        video = VideoFileClip(ruta_archivo_convertir)
-
-        print('ruta_absoluta_convertido')
-        print(ruta_absoluta_convertido)
-        video.write_videofile(ruta_absoluta_convertido, codec='libvpx')
-
-    def convertir_a_avi(self, nombre_archivo):
         
-        ruta_relativa_original = os.path.join('.', 'files\original')
-        ruta_absoluta_original = os.path.abspath(ruta_relativa_original)
+        logging.info(ruta_absoluta_original)
+        
+        ruta_relativa_convertidos = os.path.join('.','files/convertido')
+        ruta_absoluta_convertidos = os.path.abspath(ruta_relativa_convertidos)
+        
+        logging.info(ruta_absoluta_convertidos)
+        
+        if not os.path.exists(ruta_absoluta_convertidos):
+           os.makedirs(ruta_absoluta_convertidos)
 
-        ruta_relativa_convertido = os.path.join('.', 'files\convertido\ideo.avi')
-        ruta_absoluta_convertido = os.path.abspath(ruta_relativa_convertido)
+        ruta_absoluta_convertido = os.path.join(ruta_absoluta_convertidos, nombre_archivo_convertido)
 
-        ruta_archivo_convertir = os.path.join(ruta_absoluta_original, nombre_archivo)
-
+        ruta_archivo_convertir = os.path.join(ruta_absoluta_original, nombre_archivo)      
+        self.escribir_archivo_convertido(ruta_archivo_convertir, ruta_absoluta_convertido, code)      
+        
+    def escribir_archivo_convertido(self, ruta_archivo_convertir, ruta_absoluta_convertido, codec):
         video = VideoFileClip(ruta_archivo_convertir)
-
-        video.write_videofile(ruta_absoluta_convertido, codec='rawvideo')
+        video.write_videofile(ruta_absoluta_convertido, codec=codec)
 
     def crear_estado_documento(self, nombre_archivo, estado, extension_original, extension_convertir):
         estado_archivos = EstadoArchivos(
                 nombre_archivo=nombre_archivo,
                 extension_original=extension_original,
                 extension_nueva=extension_convertir,
-                estado=estado
+                estado=estado,
+                nuevo_archivo='pending'
         )   
 
         db.session.add(estado_archivos)
@@ -120,10 +101,12 @@ class FileUtils:
 
         return estado_archivos
 
-    def editar_estado_documento(self, id, estado):
+    def editar_estado_documento(self, id, estado, nombre_archivo_convertido, fecha):
 
         estado_archivo = EstadoArchivos.query.get(id)
         estado_archivo.estado = estado
+        estado_archivo.nuevo_archivo = nombre_archivo_convertido
+        estado_archivo.fecha_procesamiento = fecha
         db.session.commit()
 
     def obtener_estado_tareas_por_id(self, id):

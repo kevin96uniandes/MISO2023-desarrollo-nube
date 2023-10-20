@@ -1,27 +1,6 @@
 version: "3.8"
    
 services:
-  flask-app:
-    build:
-      context: .  
-    ports:
-      - "5000:5000"  
-    depends_on:
-      - db
-      - redis
-    environment:
-      - FLASK_APP=app.py
-      - FLASK_DEBUG=1
-      - FLASK_ENV=development
-      - DB_HOST=db
-    command: flask run -h 0.0.0.0  
-    links:
-      - db
-    networks:
-      - default
-    volumes:
-      - .:/app
-
   db:
     image: postgres
     environment:
@@ -35,9 +14,34 @@ services:
     volumes:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
   redis:
-    image: "redis:latest"    
+    image: "redis:latest"
+  flask-app:
+    build:
+      context: .  
+    ports:
+      - "5000:5000"  
+    depends_on:
+      - db
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_DEBUG=1
+      - FLASK_ENV=development
+      - DB_HOST=db
+    command: flask run -h 0.0.0.0  
+    links:
+      - db
+    networks:
+      - default
+    volumes:
+      - .:/app
+      - ./files:/app/files  
   celery-worker:
     build: .
     command: celery -A cola worker --loglevel=info
+    volumes:
+      - ./files:/app/files
+    links:
+      - db
     depends_on:
       - redis
+      - flask-app

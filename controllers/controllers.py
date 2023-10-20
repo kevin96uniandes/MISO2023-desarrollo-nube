@@ -23,14 +23,16 @@ def procesar_archivo():
 
     if archivo:
         nombre_del_archivo = archivo.filename
-        print('nombre archivo')
-        print(nombre_del_archivo.split('.')[0])
         extension_original = nombre_del_archivo.split('.')[-1]
-        mensaje = fileUtils.validar_request(extension_original, extension_convertir)
+        
+        extension_original_minuscula = extension_original.lower()
+        extension_convertir_minuscula = extension_convertir.lower()
+        
+        mensaje = fileUtils.validar_request(extension_original_minuscula, extension_convertir_minuscula)
         if mensaje == '':
 
             fileUtils.guardar_archivo_original(archivo)
-            estado_archivo = fileUtils.crear_estado_documento(nombre_del_archivo, 'Ingresado', extension_original, extension_convertir)
+            estado_archivo = fileUtils.crear_estado_documento(nombre_del_archivo, 'Ingresado', extension_original_minuscula, extension_convertir_minuscula)
             mensaje = {"id": estado_archivo.id}
             args = (estado_archivo.id, )
             obtener_id_proceso.apply_async(args)
@@ -44,10 +46,10 @@ def encontrar_archivo(id):
     estado = fileUtils.obtener_estado_tareas_por_id(id)
     if estado:
         if estado.estado == 'convertido':
-            ruta_relativa = os.path.join('.', 'files\convertido')
+            ruta_relativa = os.path.join('.', f'files/convertido')
             ruta_absoluta = os.path.abspath(ruta_relativa)
 
-            archivo_convertido = os.path.join(ruta_absoluta, estado.nombre_archivo)
+            archivo_convertido = os.path.join(ruta_absoluta, estado.nuevo_archivo)
 
             response = send_file(archivo_convertido, as_attachment=True)
             return response
