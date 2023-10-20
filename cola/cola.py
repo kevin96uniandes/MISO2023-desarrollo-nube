@@ -1,22 +1,13 @@
-import pika
+from celery import Celery
+import logging
+from utils import FileUtils
 
-def insertar_cola(id):
-    connection  = pika.BlockingConnection(pika.ConnectionParameters(host='rabbit'))
-    channel = connection.channel()
-    channel.queue_declare(queue='archivos')
-    channel.basic_publish(exchange='', routing_key='archivos', body=id)
-    connection.close()
-    print("Mensaje enviado: " + id)
+celery_app = Celery('tasks', broker='redis://redis:6379/0')
 
-def procesar_cola():
-    connection = pika.BlockingConnection(pika.ConnectionParameters(host='rabbit'))
-    channel = connection.channel()
-    channel.queue_declare(queue='archivos')
-    channel.basic_consume(on_message_callback=obtener_datos_cola, queue='archivos', auto_ack=True)
-    print('Esperando mensajes...')
-    channel.start_consuming()
+fileUtils = FileUtils()
 
-
-def obtener_datos_cola(channel, method, properties, body):
-    print("Mensaje recibido: %s" % body)
+@celery_app.task(name='conversor')
+def obtener_id_proceso(id):    
     
+    logging.info("Iniciando app")   
+    fileUtils.convertir_archivo(id)

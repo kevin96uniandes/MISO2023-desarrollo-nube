@@ -1,11 +1,12 @@
 from moviepy.editor import VideoFileClip
 from modelos import EstadoArchivos, db
 import os
+import logging
 
 class FileUtils:
 
     def convertir_archivo(self, id):
-        print(f"ejecutando cola con id {id}")
+        logging.info(f"ejecutando cola con id {id}")
 
         try: 
             estado_archivo = EstadoArchivos.query.get(id)
@@ -22,9 +23,9 @@ class FileUtils:
 
             print(f"ejecutando cola con id {id} exitoso")
 
-        except:
+        except Exception as e:
             print(f"error a la hora de procesar la cola con id {id}")
-            self.fileUtils.editar_estado_documento(estado_archivo.id, 'fallido')
+            self.editar_estado_documento(estado_archivo.id, 'fallido')
 
 
     def validar_request(self, extension_original, extension_convertir):

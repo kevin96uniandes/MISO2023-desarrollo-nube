@@ -1,13 +1,19 @@
 from flask import Blueprint, request, send_file
 from modelos import EstadoArchivosSchema
-import os, json
+import os
 from utils import FileUtils
-from cola import insertar_cola
+from celery import Celery
 
 controllers = Blueprint('controllers', __name__)
 
 estado_archivo_schema = EstadoArchivosSchema()
 fileUtils = FileUtils()
+
+celery_app = Celery('tasks', broker='redis://redis:6379/0')
+
+@celery_app.task(name='conversor')
+def obtener_id_proceso(id):
+    pass
 
 @controllers.route('/procesar', methods=['POST'])
 def procesar_archivo(): 
@@ -26,7 +32,8 @@ def procesar_archivo():
             fileUtils.guardar_archivo_original(archivo)
             estado_archivo = fileUtils.crear_estado_documento(nombre_del_archivo, 'Ingresado', extension_original, extension_convertir)
             mensaje = {"id": estado_archivo.id}
-            insertar_cola(json.dumps(mensaje))
+            args = (estado_archivo.id, )
+            obtener_id_proceso.apply_async(args)
         else:
             return mensaje, 400
 

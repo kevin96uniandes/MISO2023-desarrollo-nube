@@ -4,5 +4,5 @@ psycopg2
 Flask-SQLAlchemy
 marshmallow-sqlalchemy
 moviepy
-Pika
-apscheduler
+Celery
+Redis

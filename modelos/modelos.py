@@ -1,10 +1,11 @@
 from marshmallow import fields
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
-from app import db
 from sqlalchemy import Enum
+from flask_sqlalchemy import SQLAlchemy
 
-EstadoEnum = Enum('Ingresado','procesando', 'convertido', 'fallido')
+db = SQLAlchemy()
 
+EstadoEnum = Enum('Ingresado','procesando', 'convertido', 'fallido', name='estado_enum')
 class EstadoArchivos(db.Model):
 
     __tablename__ = 'estado_archivos'
