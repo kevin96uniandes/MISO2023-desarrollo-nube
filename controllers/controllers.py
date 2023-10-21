@@ -36,6 +36,9 @@ def registrar_usuario():
 
     if password1 != password2:
         return 'Las contraseñas deben ser iguales', 400
+    else:
+        if not fileUtils.validar_contrasena(password1):
+            return 'La contraseña debe tener mínimo 8 caracteres, al menos una mayúscula, al menos una minúscula y símbolos (!@#$%^&*)', 400
 
     stored_email = userRepository.obtener_por_email(email)
 

@@ -158,4 +158,30 @@ class FileUtils:
             return True
         else:
             return False
+
+    def validar_contrasena(self, contrasena):
+        # Verificar que tenga al menos 8 caracteres
+        if len(contrasena) < 8:
+            return False
+
+        # Verificar que contenga al menos una mayúscula
+        if not re.search(r'[A-Z]', contrasena):
+            return False
+
+        # Verificar que contenga al menos una minúscula
+        if not re.search(r'[a-z]', contrasena):
+            return False
+
+        # Verificar que contenga al menos un número
+        if not re.search(r'\d', contrasena):
+            return False
+
+        # Contar cuántos caracteres no son ni mayúsculas, minúsculas, números ni símbolos
+        caracteres_invalidos = len(re.findall(r'[^A-Za-z0-9!@#$%^&*]', contrasena))
+
+        # Si no hay caracteres inválidos, la contraseña es válida
+        if caracteres_invalidos == 0:
+            return True
+        else:
+            return False
     
