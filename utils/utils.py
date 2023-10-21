@@ -117,9 +117,9 @@ class FileUtils:
         
         if order is not None:
             if order == 1:
-                query = query.order_by(EstadoArchivos.id.desc())
-            elif order == 0:
                 query = query.order_by(EstadoArchivos.id.asc())
+            elif order == 0:
+                query = query.order_by(EstadoArchivos.id.desc())
                 
         if max is not None:
             query = query.limit(max)

@@ -38,6 +38,9 @@ def procesar_archivo():
             obtener_id_proceso.apply_async(args)
         else:
             return mensaje, 400
+    else:
+        return "Debe enviar un archivo en el campo fileName", 400
+
 
     return estado_archivo_schema.dump(estado_archivo)
 
@@ -63,8 +66,11 @@ def eliminar_tareas(id):
     
         estado = fileUtils.obtener_estado_tareas_por_id(id)
         if estado:
-            fileUtils.eliminar_tarea(estado)
-            return f"Tarea con el id {id} eliminada con exito",204
+            if estado.estado == 'convertido':
+                fileUtils.eliminar_tarea(estado)
+                return f"Tarea con el id {id} eliminada con exito",200
+            else:
+                return f"La tarea con id {id} se encuentra en estado {estado.estado}, debe esperar a que termine de procesar", 200
         else:
             return f"Tarea no encontrada con id {id}", 404
 
