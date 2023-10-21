@@ -7,3 +7,5 @@ moviepy
 Celery
 Redis
 Werkzeug
+Flask-JWT==0.2.0
+Flask-JWT-Extended==4.2.3

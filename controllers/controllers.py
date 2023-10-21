@@ -5,6 +5,8 @@ from utils import FileUtils
 from repository.UserRepository import UserRepository
 from celery import Celery
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_jwt_extended import jwt_required, create_access_token, get_current_user, get_jwt
+from flask import jsonify
 
 controllers = Blueprint('controllers', __name__)
 
@@ -72,7 +74,8 @@ def login():
             return 'Credenciales incorrectas', 401
     else:
         return 'Credenciales incorrectas', 401
-    return users_schema.dump(stored_user)
+    token_de_acceso = create_access_token(identity=stored_user.id)
+    return jsonify({"mensaje": "Inicio de sesión exitoso", "__token": "token_de_acceso", "id": stored_user.id})
 
 
 @controllers.route('/tasks', methods=['POST'])
