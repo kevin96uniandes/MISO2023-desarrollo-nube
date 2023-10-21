@@ -1,6 +1,5 @@
 from flask import Flask
 from flask_cors import CORS
-from modelos import db
 from configuracion import Config
 from flask_jwt_extended import JWTManager
 

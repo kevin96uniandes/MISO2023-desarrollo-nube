@@ -7,8 +7,9 @@ from datetime import datetime
 db = SQLAlchemy()
 
 EstadoEnum = Enum('Ingresado','procesando', 'convertido', 'fallido', name='estado_enum')
-class EstadoArchivos(db.Model):
 
+
+class EstadoArchivos(db.Model):
     __tablename__ = 'estado_archivos'
     id = db.Column(db.Integer, primary_key=True)
     nombre_archivo = db.Column(db.String(128))
@@ -18,6 +19,16 @@ class EstadoArchivos(db.Model):
     extension_nueva = db.Column(db.String(128))
     fecha_carga = db.Column(db.DateTime, default=datetime.utcnow)
     fecha_procesamiento = db.Column(db.DateTime)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+
+
+class Users(db.Model):
+    __tablename__ = 'users'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password = db.Column(db.String(60), nullable=False)
+
 
 class EstadoArchivosSchema(SQLAlchemyAutoSchema):
     class Meta:
@@ -27,14 +38,6 @@ class EstadoArchivosSchema(SQLAlchemyAutoSchema):
         include_fk = True
 
     id = fields.String()
-
-
-class Users(db.Model):
-    __tablename__ = 'users'
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    username = db.Column(db.String(80), unique=True, nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    password = db.Column(db.String(60), nullable=False)
 
 
 class UsersSchema(SQLAlchemyAutoSchema):

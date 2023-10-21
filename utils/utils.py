@@ -88,13 +88,14 @@ class FileUtils:
         video = VideoFileClip(ruta_archivo_convertir)
         video.write_videofile(ruta_absoluta_convertido, codec=codec)
 
-    def crear_estado_documento(self, nombre_archivo, estado, extension_original, extension_convertir):
+    def crear_estado_documento(self, nombre_archivo, estado, extension_original, extension_convertir, usuario_id):
         estado_archivos = EstadoArchivos(
                 nombre_archivo=nombre_archivo,
                 extension_original=extension_original,
                 extension_nueva=extension_convertir,
                 estado=estado,
-                nuevo_archivo='pending'
+                nuevo_archivo='pending',
+                usuario_id=usuario_id
         )   
 
         db.session.add(estado_archivos)
@@ -110,12 +111,14 @@ class FileUtils:
         estado_archivo.fecha_procesamiento = fecha
         db.session.commit()
 
-    def obtener_estado_tareas_por_id(self, id):
-        return EstadoArchivos.query.get(id)
+    def obtener_estado_tareas_por_id(self, id, usuario_id):
+        return EstadoArchivos.query.filter_by(id=id, usuario_id=usuario_id).first()
     
-    def obtener_lista_tareas_usuario(self, id_user, max, order):
+    def obtener_lista_tareas_usuario(self, usuario_id, max, order):
         query = db.session.query(EstadoArchivos)
-        
+
+        query = query.filter_by(usuario_id=usuario_id)
+
         if order is not None:
             if order == 1:
                 query = query.order_by(EstadoArchivos.id.asc())
@@ -124,8 +127,7 @@ class FileUtils:
                 
         if max is not None:
             query = query.limit(max)
-            
-                
+
         return query.all()
     
     def eliminar_tarea(self, estado):

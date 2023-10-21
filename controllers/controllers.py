@@ -5,7 +5,7 @@ from utils import FileUtils
 from repository.UserRepository import UserRepository
 from celery import Celery
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_jwt_extended import jwt_required, create_access_token, get_current_user, get_jwt
+from flask_jwt_extended import jwt_required, create_access_token, get_current_user, get_jwt, get_jwt_identity
 from flask import jsonify
 
 controllers = Blueprint('controllers', __name__)
@@ -77,14 +77,14 @@ def login():
             return 'Credenciales incorrectas', 401
     else:
         return 'Credenciales incorrectas', 401
-    token_de_acceso = create_access_token(identity=stored_user.id)
+    token_de_acceso = create_access_token(identity=2)
     return jsonify({"mensaje": "Inicio de sesión exitoso", "__token": token_de_acceso, "id": stored_user.id})
 
 
 @controllers.route('/tasks', methods=['POST'])
 @jwt_required()
-def procesar_archivo(): 
-
+def procesar_archivo():
+    user_id = get_jwt_identity()
     archivo = request.files['fileName']
     extension_convertir = request.form.get('newFormat')
 
@@ -99,7 +99,7 @@ def procesar_archivo():
         if mensaje == '':
 
             fileUtils.guardar_archivo_original(archivo)
-            estado_archivo = fileUtils.crear_estado_documento(nombre_del_archivo, 'Ingresado', extension_original_minuscula, extension_convertir_minuscula)
+            estado_archivo = fileUtils.crear_estado_documento(nombre_del_archivo, 'Ingresado', extension_original_minuscula, extension_convertir_minuscula, user_id)
             mensaje = {"id": estado_archivo.id}
             args = (estado_archivo.id, )
             obtener_id_proceso.apply_async(args)
@@ -114,7 +114,8 @@ def procesar_archivo():
 @controllers.route('/tasks/<int:id>', methods=['GET'])
 @jwt_required()
 def encontrar_archivo(id):
-    estado = fileUtils.obtener_estado_tareas_por_id(id)
+    user_id = get_jwt_identity()
+    estado = fileUtils.obtener_estado_tareas_por_id(id, user_id)
     if estado:
         if estado.estado == 'convertido':
             ruta_relativa = os.path.join('.', f'files/convertido')
@@ -131,26 +132,27 @@ def encontrar_archivo(id):
 
 @controllers.route('/tasks/<int:id>', methods=['DELETE'])
 @jwt_required()
-def eliminar_tareas(id):  
-    
-        estado = fileUtils.obtener_estado_tareas_por_id(id)
-        if estado:
-            if estado.estado == 'convertido':
-                fileUtils.eliminar_tarea(estado)
-                return f"Tarea con el id {id} eliminada con exito",200
-            else:
-                return f"La tarea con id {id} se encuentra en estado {estado.estado}, debe esperar a que termine de procesar", 200
+def eliminar_tareas(id):
+    user_id = get_jwt_identity()
+    estado = fileUtils.obtener_estado_tareas_por_id(id, user_id)
+    if estado:
+        if estado.estado == 'convertido':
+            fileUtils.eliminar_tarea(estado)
+            return f"Tarea con el id {id} eliminada con exito",200
         else:
-            return f"Tarea no encontrada con id {id}", 404
+            return f"La tarea con id {id} se encuentra en estado {estado.estado}, debe esperar a que termine de procesar", 200
+    else:
+        return f"Tarea no encontrada con id {id}", 404
 
     
 @controllers.route('/tasks', methods=['GET'])
 @jwt_required()
-def obtener_tareas():      
-        data = request.get_json()
+def obtener_tareas():
+    user_id = get_jwt_identity()
+    data = request.get_json()
 
-        max_value = data.get("max")
-        order_value = data.get("order")
-    
-        tareas = fileUtils.obtener_lista_tareas_usuario('', max_value, order_value)
-        return {"tareas": [estado_archivo_schema.dump(task) for task in tareas]}, 200
+    max_value = data.get("max")
+    order_value = data.get("order")
+
+    tareas = fileUtils.obtener_lista_tareas_usuario(user_id, max_value, order_value)
+    return {"tareas": [estado_archivo_schema.dump(task) for task in tareas]}, 200

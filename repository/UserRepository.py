@@ -12,3 +12,6 @@ class UserRepository:
     def guardar_usuario(self, user):
         db.session.add(user)
         db.session.commit()
+
+    def obtener_usuario_por_id(self, id):
+        return Users.query.filter_by(id=id).first()
