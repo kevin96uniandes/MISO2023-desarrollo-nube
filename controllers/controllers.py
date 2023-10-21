@@ -75,10 +75,11 @@ def login():
     else:
         return 'Credenciales incorrectas', 401
     token_de_acceso = create_access_token(identity=stored_user.id)
-    return jsonify({"mensaje": "Inicio de sesión exitoso", "__token": "token_de_acceso", "id": stored_user.id})
+    return jsonify({"mensaje": "Inicio de sesión exitoso", "__token": token_de_acceso, "id": stored_user.id})
 
 
 @controllers.route('/tasks', methods=['POST'])
+@jwt_required()
 def procesar_archivo(): 
 
     archivo = request.files['fileName']
@@ -108,6 +109,7 @@ def procesar_archivo():
     return estado_archivo_schema.dump(estado_archivo)
 
 @controllers.route('/tasks/<int:id>', methods=['GET'])
+@jwt_required()
 def encontrar_archivo(id):
     estado = fileUtils.obtener_estado_tareas_por_id(id)
     if estado:
@@ -125,6 +127,7 @@ def encontrar_archivo(id):
         return "Archivo no encontrado", 404
 
 @controllers.route('/tasks/<int:id>', methods=['DELETE'])
+@jwt_required()
 def eliminar_tareas(id):  
     
         estado = fileUtils.obtener_estado_tareas_por_id(id)
@@ -139,6 +142,7 @@ def eliminar_tareas(id):
 
     
 @controllers.route('/tasks', methods=['GET'])
+@jwt_required()
 def obtener_tareas():      
         data = request.get_json()
 
