@@ -1,8 +1,9 @@
 from moviepy.editor import VideoFileClip
 from datetime import datetime
-from modelos import EstadoArchivos, db
+from modelos import EstadoArchivos, db, Users
 import os
 import logging
+import re
 
 class FileUtils:
 
@@ -148,5 +149,13 @@ class FileUtils:
             
         db.session.delete(estado)
         db.session.commit()                        
-        
+
+    def validar_email(self, email):
+        # Expresión regular para validar correos electrónicos
+        patron = r'^[\w\.-]+@[\w\.-]+\.\w+$'
+
+        if re.match(patron, email):
+            return True
+        else:
+            return False
     

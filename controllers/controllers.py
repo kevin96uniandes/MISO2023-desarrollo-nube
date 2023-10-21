@@ -1,19 +1,62 @@
 from flask import Blueprint, request, send_file
-from modelos import EstadoArchivosSchema
+from modelos import EstadoArchivosSchema, Users, UsersSchema
 import os
 from utils import FileUtils
+from repository.UserRepository import UserRepository
 from celery import Celery
+from werkzeug.security import generate_password_hash, check_password_hash
 
 controllers = Blueprint('controllers', __name__)
 
 estado_archivo_schema = EstadoArchivosSchema()
+users_schema = UsersSchema()
 fileUtils = FileUtils()
+userRepository = UserRepository()
 
 celery_app = Celery('tasks', broker='redis://redis:6379/0')
+
 
 @celery_app.task(name='conversor')
 def obtener_id_proceso(id):
     pass
+
+
+@controllers.route('/signup', methods=['POST'])
+def registrar_usuario():
+    data = request.get_json()
+    email = data.get('email')
+    username = data.get('username')
+    password1 = data.get('password1')
+    password2 = data.get('password2')
+
+    if not email or not username or not password1 or not password2:
+        return f'Los campos email, username y password son requeridos', 400
+
+    if password1 != password2:
+        return 'Las contraseñas deben ser iguales', 400
+
+    stored_email = userRepository.obtener_por_email(email)
+
+    if stored_email:
+        return 'El email ya se encuentra en uso'
+    else:
+        if not fileUtils.validar_email(email):
+            return 'Formato de correo incorrecto'
+
+    stored_username = userRepository.obtener_por_username(username)
+
+    if stored_username:
+        return 'El nombre de usuario ya se encuentra en uso'
+
+    user = Users(
+        username=username,
+        email=email,
+        password=generate_password_hash(password1)
+    )
+
+    userRepository.guardar_usuario(user)
+    return users_schema.dump(user)
+
 
 @controllers.route('/tasks', methods=['POST'])
 def procesar_archivo(): 
