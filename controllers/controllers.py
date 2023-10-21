@@ -21,7 +21,7 @@ def obtener_id_proceso(id):
     pass
 
 
-@controllers.route('/signup', methods=['POST'])
+@controllers.route('/auth/signup', methods=['POST'])
 def registrar_usuario():
     data = request.get_json()
     email = data.get('email')
@@ -30,7 +30,7 @@ def registrar_usuario():
     password2 = data.get('password2')
 
     if not email or not username or not password1 or not password2:
-        return f'Los campos email, username y password son requeridos', 400
+        return 'Los campos email, username y password son requeridos', 400
 
     if password1 != password2:
         return 'Las contraseñas deben ser iguales', 400
@@ -41,7 +41,7 @@ def registrar_usuario():
         return 'El email ya se encuentra en uso'
     else:
         if not fileUtils.validar_email(email):
-            return 'Formato de correo incorrecto'
+            return 'Formato de email incorrecto'
 
     stored_username = userRepository.obtener_por_username(username)
 
@@ -56,6 +56,23 @@ def registrar_usuario():
 
     userRepository.guardar_usuario(user)
     return users_schema.dump(user)
+
+@controllers.route('/auth/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
+
+    if not username or not password:
+        return 'Usuario y contraseña son obligatorios', 400
+
+    stored_user = userRepository.obtener_por_username(username)
+    if stored_user:
+        if not check_password_hash(stored_user.password, password):
+            return 'Credenciales incorrectas', 401
+    else:
+        return 'Credenciales incorrectas', 401
+    return users_schema.dump(stored_user)
 
 
 @controllers.route('/tasks', methods=['POST'])
