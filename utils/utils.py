@@ -111,5 +111,42 @@ class FileUtils:
 
     def obtener_estado_tareas_por_id(self, id):
         return EstadoArchivos.query.get(id)
-
+    
+    def obtener_lista_tareas_usuario(self, id_user, max, order):
+        query = db.session.query(EstadoArchivos)
+        
+        if order is not None:
+            if order == 1:
+                query = query.order_by(EstadoArchivos.id.desc())
+            elif order == 0:
+                query = query.order_by(EstadoArchivos.id.asc())
+                
+        if max is not None:
+            query = query.limit(max)
+            
+                
+        return query.all()
+    
+    def eliminar_tarea(self, estado):
+        ruta_relativa_original = os.path.join('.', 'files/original')
+        ruta_absoluta_original = os.path.abspath(ruta_relativa_original)
+                
+        ruta_archivo_original = os.path.join(ruta_absoluta_original, estado.nombre_archivo)    
+                
+        if os.path.exists(ruta_archivo_original):
+            os.remove(ruta_archivo_original)
+            logging.info(f"archivo {ruta_archivo_original} eliminado")        
+                
+        ruta_relativa_convertidos = os.path.join('.','files/convertido')
+        ruta_absoluta_convertidos = os.path.abspath(ruta_relativa_convertidos)
+        
+        ruta_archivo_convertido = os.path.join(ruta_absoluta_convertidos, estado.nuevo_archivo)    
+        
+        if os.path.exists(ruta_archivo_convertido):
+            os.remove(ruta_archivo_convertido)
+            logging.info(f"archivo {ruta_archivo_convertido} eliminado")
+            
+        db.session.delete(estado)
+        db.session.commit()                        
+        
     

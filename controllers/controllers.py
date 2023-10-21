@@ -15,11 +15,11 @@ celery_app = Celery('tasks', broker='redis://redis:6379/0')
 def obtener_id_proceso(id):
     pass
 
-@controllers.route('/procesar', methods=['POST'])
+@controllers.route('/tasks', methods=['POST'])
 def procesar_archivo(): 
 
-    archivo = request.files['archivo']
-    extension_convertir = request.form.get('extension_convertir')
+    archivo = request.files['fileName']
+    extension_convertir = request.form.get('newFormat')
 
     if archivo:
         nombre_del_archivo = archivo.filename
@@ -41,7 +41,7 @@ def procesar_archivo():
 
     return estado_archivo_schema.dump(estado_archivo)
 
-@controllers.route('/obtener-documento/<int:id>', methods=['GET'])
+@controllers.route('/tasks/<int:id>', methods=['GET'])
 def encontrar_archivo(id):
     estado = fileUtils.obtener_estado_tareas_por_id(id)
     if estado:
@@ -57,3 +57,24 @@ def encontrar_archivo(id):
         return estado_archivo_schema.dump(estado)
     else:
         return "Archivo no encontrado", 404
+
+@controllers.route('/tasks/<int:id>', methods=['DELETE'])
+def eliminar_tareas(id):  
+    
+        estado = fileUtils.obtener_estado_tareas_por_id(id)
+        if estado:
+            fileUtils.eliminar_tarea(estado)
+            return f"Tarea con el id {id} eliminada con exito",204
+        else:
+            return f"Tarea no encontrada con id {id}", 404
+
+    
+@controllers.route('/tasks', methods=['GET'])
+def obtener_tareas():      
+        data = request.get_json()
+
+        max_value = data.get("max")
+        order_value = data.get("order")
+    
+        tareas = fileUtils.obtener_lista_tareas_usuario('', max_value, order_value)
+        return {"tareas": [estado_archivo_schema.dump(task) for task in tareas]}, 200
