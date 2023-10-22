@@ -78,7 +78,7 @@ def login():
             return 'Credenciales incorrectas', 401
     else:
         return 'Credenciales incorrectas', 401
-    token_de_acceso = create_access_token(identity=2)
+    token_de_acceso = create_access_token(identity=stored_user.id)
     return jsonify({"mensaje": "Inicio de sesión exitoso", "__token": token_de_acceso, "id": stored_user.id})
 
 
