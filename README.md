@@ -42,7 +42,6 @@ Nuestra aplicación conversor esta diseñada para convertir archvios de video de
 ![image](https://github.com/kevin96uniandes/MISO2023-desarrollo-nube/assets/123959005/4cbcd45a-ab17-411e-b599-a616a6ecd7f4)
  
 9. Importamos el archivo descargado en el paso 8 "CICLO || -CLOUD.postamn_collection.json"
-![image](https://github.com/kevin96uniandes/MISO2023-desarrollo-nube/assets/123959005/7b9591cb-318c-45fc-8ac6-9515b400530e)
 
 10. Una vez importado, deberiamos ver los siguientes servicios documentados 
 ![image](https://github.com/kevin96uniandes/MISO2023-desarrollo-nube/assets/123959005/4631394e-4ea7-4131-824f-3a6e01558bda)
