@@ -38,7 +38,7 @@ Nuestra aplicación conversor esta diseñada para convertir archvios de video de
 7. Abrimos postman e importamos la documentación de los servicios
 ![image](https://github.com/kevin96uniandes/MISO2023-desarrollo-nube/assets/123959005/5b464eac-702e-4d85-bea4-35de1af22a3c)
 
-8. Procedemos a ejecutar cada servicio, cada servicio tiene configurado su endpoint, request requerida, solo es reemplazar lso datos en la request, parra falcilitar las pruebas, hemos adjuntado estos tres archivos de pruebae un archivo .zip que debe descomprimir [datos de prueba](https://uniandes-my.sharepoint.com/:u:/g/personal/k_maldonadod_uniandes_edu_co/ETTY7tAoSCNHlsqK7etI_iABK1YTLLGJXzXRgRcwIVgCDQ?e=h7tl6r), si deseas mas información de cada uno de lso servicios, pouedes ir a la sección de wiki -> [Documentación servicios de la aplicación](Identificación-de-riesgos)
+8. Procedemos a ejecutar cada servicio, cada servicio tiene configurado su endpoint, request requerida, solo es reemplazar lso datos en la request, parra falcilitar las pruebas, hemos adjuntado estos tres archivos de pruebae un archivo .zip que debe descomprimir [datos de prueba](https://uniandes-my.sharepoint.com/:u:/g/personal/k_maldonadod_uniandes_edu_co/ETTY7tAoSCNHlsqK7etI_iABK1YTLLGJXzXRgRcwIVgCDQ?e=h7tl6r), si deseas mas información de cada uno de lso servicios, pouedes ir a la sección de wiki -> [Documentación servicios de la aplicación](https://github.com/kevin96uniandes/MISO2023-desarrollo-nube/wiki/Documentacion-servicios)
 
 # Instrucciones de la entrega documental
 
@@ -47,5 +47,6 @@ En la sección de la wiki del repositorio, en el menu lateral izquierdo podras e
 * Documento de arquitectura de la aplicación
 * Documento plan de pruebas
 * Documentación servicios de la aplicación
+* Video explicando el uso de la aplicacion
 
 ![image](https://github.com/kevin96uniandes/MISO2023-desarrollo-nube/assets/123959005/19a19ac4-deeb-4036-9b4a-8886a307514a)
