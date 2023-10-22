@@ -47,3 +47,5 @@ En la sección de la wiki del repositorio, en el menu lateral izquierdo podras e
 * Documento de arquitectura de la aplicación
 * Documento plan de pruebas
 * Documentación servicios de la aplicación
+
+![image](https://github.com/kevin96uniandes/MISO2023-desarrollo-nube/assets/123959005/19a19ac4-deeb-4036-9b4a-8886a307514a)
