@@ -35,10 +35,19 @@ Nuestra aplicación conversor esta diseñada para convertir archvios de video de
 6. Si tenemos instalado Dcoker Compose, podemos ver en la pantalla principal **Containers** podamos ver en verde los contenedores MISO2023-desarrollo-nube
 ![image](https://github.com/kevin96uniandes/MISO2023-desarrollo-nube/assets/123959005/2f4b6cd4-4672-4554-ada5-8201b92d414d)
 
-7. Abrimos postman e importamos la documentación de los servicios
-![image](https://github.com/kevin96uniandes/MISO2023-desarrollo-nube/assets/123959005/5b464eac-702e-4d85-bea4-35de1af22a3c)
+7. Abrimos postman en la sección de collections
+![image](https://github.com/kevin96uniandes/MISO2023-desarrollo-nube/assets/123959005/aebe30a3-4868-419a-af7e-f9455683ca01)
 
-8. Procedemos a ejecutar cada servicio, cada servicio tiene configurado su endpoint, request requerida, solo es reemplazar lso datos en la request, parra falcilitar las pruebas, hemos adjuntado estos tres archivos de pruebae un archivo .zip que debe descomprimir [datos de prueba](https://uniandes-my.sharepoint.com/:u:/g/personal/k_maldonadod_uniandes_edu_co/ETTY7tAoSCNHlsqK7etI_iABK1YTLLGJXzXRgRcwIVgCDQ?e=h7tl6r), si deseas mas información de cada uno de lso servicios, pouedes ir a la sección de wiki -> [Documentación servicios de la aplicación](https://github.com/kevin96uniandes/MISO2023-desarrollo-nube/wiki/Documentacion-servicios)
+8. Descargamos el archivo [coleccion postman](https://uniandes-my.sharepoint.com/:u:/g/personal/k_maldonadod_uniandes_edu_co/EZUvmG0N6b9LupkFkBfccuoBXSzu7rVNAiLPTu94XCH-Rg?e=rbDdba), hacemos click en import
+![image](https://github.com/kevin96uniandes/MISO2023-desarrollo-nube/assets/123959005/4cbcd45a-ab17-411e-b599-a616a6ecd7f4)
+ 
+9. Importamos el archivo descargado en el paso 8 "CICLO || -CLOUD.postamn_collection.json"
+![image](https://github.com/kevin96uniandes/MISO2023-desarrollo-nube/assets/123959005/7b9591cb-318c-45fc-8ac6-9515b400530e)
+
+10. Una vez importado, deberiamos ver los siguientes servicios documentados 
+![image](https://github.com/kevin96uniandes/MISO2023-desarrollo-nube/assets/123959005/4631394e-4ea7-4131-824f-3a6e01558bda)
+
+11. Procedemos a ejecutar cada servicio, cada servicio tiene configurado su endpoint, request requerida, solo es reemplazar lso datos en la request, parra falcilitar las pruebas, hemos adjuntado estos tres archivos de pruebae un archivo .zip que debe descomprimir [datos de prueba](https://uniandes-my.sharepoint.com/:u:/g/personal/k_maldonadod_uniandes_edu_co/ETTY7tAoSCNHlsqK7etI_iABK1YTLLGJXzXRgRcwIVgCDQ?e=h7tl6r), si deseas mas información de cada uno de lso servicios, pouedes ir a la sección de wiki -> [Documentación servicios de la aplicación](https://github.com/kevin96uniandes/MISO2023-desarrollo-nube/wiki/Documentacion-servicios)
 
 # Instrucciones de la entrega documental
 
