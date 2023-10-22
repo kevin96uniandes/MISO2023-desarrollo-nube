@@ -10,6 +10,10 @@ COPY . .
 # Copy the requirements file into the container
 COPY app.py .  
 
+# import ffmpeg
+RUN apt-get -y update
+RUN apt-get install -y ffmpeg
+
 # Install dependencies
 RUN pip install -r requirements.txt
 

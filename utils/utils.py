@@ -1,5 +1,5 @@
-from moviepy.editor import VideoFileClip
 from datetime import datetime
+import subprocess
 from modelos import EstadoArchivos, db, Users
 import os
 import logging
@@ -17,11 +17,12 @@ class FileUtils:
             nombre_archivo_convertido = f"{estado_archivo.id}_converted.{estado_archivo.extension_nueva}"
 
             if estado_archivo.extension_nueva == 'mp4':
-                self.convertir_archivo(estado_archivo.nombre_archivo, nombre_archivo_convertido, 'libx264')
+                self.convertir_archivo(estado_archivo.nombre_archivo, nombre_archivo_convertido)
             if estado_archivo.extension_nueva == 'webm':
-                self.convertir_archivo(estado_archivo.nombre_archivo, nombre_archivo_convertido, 'libvpx')
+                logging.info('entre webm')
+                self.convertir_archivo(estado_archivo.nombre_archivo, nombre_archivo_convertido)
             if estado_archivo.extension_nueva == 'avi':
-                self.convertir_archivo(estado_archivo.nombre_archivo, nombre_archivo_convertido, 'rawvideo')
+                self.convertir_archivo(estado_archivo.nombre_archivo, nombre_archivo_convertido)
 
             self.editar_estado_documento(estado_archivo.id, 'convertido', nombre_archivo_convertido,datetime.now())
 
@@ -53,19 +54,19 @@ class FileUtils:
         else:
             return False
         
-    def guardar_archivo_original(self, archivo):
-        ruta_relativa = os.path.join('.', 'files/original')
+    def guardar_archivo_original(self, archivo, id):
+        ruta_relativa = os.path.join('.', 'files/original/')
         ruta_absoluta = os.path.abspath(ruta_relativa)
 
         logging.info(ruta_absoluta)
         if not os.path.exists(ruta_absoluta):
            os.makedirs(ruta_absoluta)
 
-        archivo_guardado = os.path.join(ruta_absoluta, archivo.filename)
+        archivo_guardado = os.path.join(ruta_absoluta, f"{id}_{archivo.filename}")
         print(archivo_guardado)
         archivo.save(archivo_guardado)
 
-    def convertir_archivo(self, nombre_archivo, nombre_archivo_convertido, code):
+    def convertir_archivo(self, nombre_archivo, nombre_archivo_convertido):
         ruta_relativa_original = os.path.join('.', 'files/original')
         ruta_absoluta_original = os.path.abspath(ruta_relativa_original)
         
@@ -82,11 +83,10 @@ class FileUtils:
         ruta_absoluta_convertido = os.path.join(ruta_absoluta_convertidos, nombre_archivo_convertido)
 
         ruta_archivo_convertir = os.path.join(ruta_absoluta_original, nombre_archivo)      
-        self.escribir_archivo_convertido(ruta_archivo_convertir, ruta_absoluta_convertido, code)      
+        self.escribir_archivo_convertido(ruta_archivo_convertir, ruta_absoluta_convertido)      
         
-    def escribir_archivo_convertido(self, ruta_archivo_convertir, ruta_absoluta_convertido, codec):
-        video = VideoFileClip(ruta_archivo_convertir)
-        video.write_videofile(ruta_absoluta_convertido, codec=codec)
+    def escribir_archivo_convertido(self, ruta_archivo_convertir, ruta_absoluta_convertido):       
+        subprocess.call(['ffmpeg', '-i', ruta_archivo_convertir, ruta_absoluta_convertido])
 
     def crear_estado_documento(self, nombre_archivo, estado, extension_original, extension_convertir, usuario_id):
         estado_archivos = EstadoArchivos(
@@ -99,9 +99,16 @@ class FileUtils:
         )   
 
         db.session.add(estado_archivos)
+        
+        estado_archivos.nombre_archivo
         db.session.commit()
 
         return estado_archivos
+    def editar_nombre_documento(self, id, nombre_archivo):
+
+        estado_archivo = EstadoArchivos.query.get(id)
+        estado_archivo.nombre_archivo = nombre_archivo
+        db.session.commit()
 
     def editar_estado_documento(self, id, estado, nombre_archivo_convertido, fecha):
 
@@ -116,6 +123,8 @@ class FileUtils:
     
     def obtener_lista_tareas_usuario(self, usuario_id, max, order):
         query = db.session.query(EstadoArchivos)
+        
+        logging.info(usuario_id)
 
         query = query.filter_by(usuario_id=usuario_id)
 
@@ -186,4 +195,4 @@ class FileUtils:
             return True
         else:
             return False
-    
+

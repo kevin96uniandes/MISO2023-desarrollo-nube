@@ -43,6 +43,7 @@ def registrar_usuario():
     stored_email = userRepository.obtener_por_email(email)
 
     if stored_email:
+        
         return 'El email ya se encuentra en uso'
     else:
         if not fileUtils.validar_email(email):
@@ -98,8 +99,10 @@ def procesar_archivo():
         mensaje = fileUtils.validar_request(extension_original_minuscula, extension_convertir_minuscula)
         if mensaje == '':
 
-            fileUtils.guardar_archivo_original(archivo)
             estado_archivo = fileUtils.crear_estado_documento(nombre_del_archivo, 'Ingresado', extension_original_minuscula, extension_convertir_minuscula, user_id)
+            fileUtils.guardar_archivo_original(archivo, estado_archivo.id)
+            fileUtils.editar_nombre_documento(estado_archivo.id,f"{estado_archivo.id}_{archivo.filename}")
+            
             mensaje = {"id": estado_archivo.id}
             args = (estado_archivo.id, )
             obtener_id_proceso.apply_async(args)
@@ -111,24 +114,29 @@ def procesar_archivo():
 
     return estado_archivo_schema.dump(estado_archivo)
 
+        
 @controllers.route('/tasks/<int:id>', methods=['GET'])
 @jwt_required()
 def encontrar_archivo(id):
     user_id = get_jwt_identity()
     estado = fileUtils.obtener_estado_tareas_por_id(id, user_id)
     if estado:
-        if estado.estado == 'convertido':
-            ruta_relativa = os.path.join('.', f'files/convertido')
-            ruta_absoluta = os.path.abspath(ruta_relativa)
-
-            archivo_convertido = os.path.join(ruta_absoluta, estado.nuevo_archivo)
-
-            response = send_file(archivo_convertido, as_attachment=True)
-            return response
-
-        return estado_archivo_schema.dump(estado)
+        url_archivo_original = f"http://{request.host}/api/files/original/{estado.nombre_archivo}"
+        if estado.nuevo_archivo:
+            url_archivo_convertido = f"http://{request.host}/api/files/convertido/{estado.nuevo_archivo}"
+        else:
+            url_archivo_convertido = '' 
+        return {"tarea": estado_archivo_schema.dump(estado), "url archivo original": url_archivo_original, "url_archivo_convertido": url_archivo_convertido}
     else:
         return "Archivo no encontrado", 404
+    
+@controllers.route('/files/<string:tipo>/<string:nombre>', methods=['GET'])
+def obtener_archivo_descargar(tipo, nombre):    
+       ruta_relativa_descargar = os.path.join('.', f"files/{tipo}/{nombre}")
+       ruta_absoluta_descargar = os.path.abspath(ruta_relativa_descargar)
+       
+       return send_file(ruta_absoluta_descargar, as_attachment=True)
+
 
 @controllers.route('/tasks/<int:id>', methods=['DELETE'])
 @jwt_required()
@@ -150,6 +158,8 @@ def eliminar_tareas(id):
 def obtener_tareas():
     user_id = get_jwt_identity()
     data = request.get_json()
+
+    print(user_id)
 
     max_value = data.get("max")
     order_value = data.get("order")
