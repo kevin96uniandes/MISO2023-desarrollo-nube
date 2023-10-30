@@ -49,6 +49,38 @@ Nuestra aplicación conversor esta diseñada para convertir archvios de video de
 
 11. Procedemos a ejecutar cada servicio, cada servicio tiene configurado su endpoint, request requerida, solo es reemplazar lso datos en la request, parra falcilitar las pruebas, hemos adjuntado estos tres archivos de pruebae un archivo .zip que debe descomprimir [datos de prueba](https://uniandes-my.sharepoint.com/:u:/g/personal/k_maldonadod_uniandes_edu_co/ETTY7tAoSCNHlsqK7etI_iABK1YTLLGJXzXRgRcwIVgCDQ?e=h7tl6r), si deseas mas información de cada uno de lso servicios, pouedes ir a la sección de wiki -> [Documentación servicios de la aplicación](https://github.com/kevin96uniandes/MISO2023-desarrollo-nube/wiki/Documentacion-servicios)
 
+# Pasos para ejecutar nuestra aplicación en docker
+
+1. Entramos al proyecto creado en Google Cloud GCP
+![image](https://github.com/kevin96uniandes/MISO2023-desarrollo-nube/assets/123959005/4c3e649c-8e72-45d4-a298-090e058bc4e5)
+
+2. Abrimos la consola ssh tanto para la maquina **maquina virtual worker** como la maquina **maquina virtual flask**
+
+maquina virtual worker
+![image](https://github.com/kevin96uniandes/MISO2023-desarrollo-nube/assets/123959005/3ec97205-4851-4d80-8ffe-06566f957b79)
+
+maquina virtual flask
+![image](https://github.com/kevin96uniandes/MISO2023-desarrollo-nube/assets/123959005/8b96c369-8526-4ca4-861b-b78876954312)
+
+3. Ejecutamos el comando **sudo docker pull kevin9612/miso2023-desarrollo-nube-celery-worker** en la **maquina virtual worker**, esta imagen representa nuestro contenedor en Celery 
+
+maquina virtual worker
+![image](https://github.com/kevin96uniandes/MISO2023-desarrollo-nube/assets/123959005/3ec97205-4851-4d80-8ffe-06566f957b79)
+
+4. Ejecutamos el comando **kevin9612/miso2023-desarrollo-nube-flask-app** en la **maquina virtual flask**, esta imagen representa nuestras APIS de flask
+
+![image](https://github.com/kevin96uniandes/MISO2023-desarrollo-nube/assets/123959005/8b96c369-8526-4ca4-861b-b78876954312)
+
+5. Ejecutamos los comandos *sudo docker compose up --build* en ambas maquinas
+
+maquina virtual worker
+![image](https://github.com/kevin96uniandes/MISO2023-desarrollo-nube/assets/123959005/ca68c9c9-fe4c-43b8-92f0-6db0a573cc5c)
+
+maquina virtual flask
+![image](https://github.com/kevin96uniandes/MISO2023-desarrollo-nube/assets/123959005/2ee818a0-9e38-45ec-9db4-54b24a9b41e1)
+
+6. Ejecutamos en postman 
+
 # Instrucciones de la entrega documental
 
 En la sección de la wiki del repositorio, en el menu lateral izquierdo podras encontrar:
