@@ -81,6 +81,8 @@ maquina virtual flask
 
 6. Ejecutamos en postman 
 
+NOTA: las maquinas estan apagadas para no consumir los creditos
+
 # Instrucciones de la entrega documental
 
 En la sección de la wiki del repositorio, en el menu lateral izquierdo podras encontrar:
@@ -90,4 +92,7 @@ En la sección de la wiki del repositorio, en el menu lateral izquierdo podras e
 * Documentación servicios de la aplicación
 * Video explicando el uso de la aplicacion
 
-![image](https://github.com/kevin96uniandes/MISO2023-desarrollo-nube/assets/123959005/19a19ac4-deeb-4036-9b4a-8886a307514a)
+  Tanto de la semana 1 como de la semana 2
+
+![image](https://github.com/kevin96uniandes/MISO2023-desarrollo-nube/assets/123959005/c92aab8f-95e6-439c-a1cd-7c16d876763b)
+
