@@ -1,12 +1,22 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import subprocess
 from modelos import EstadoArchivos, db, Users
 import os
 import logging
 import re
+from google.cloud import storage
+
+
+
+def eliminar_archivo(ruta_absoluta):
+    print(f'Eliminando archivo {ruta_absoluta}')
+    # Elimina el archivo temporal del sistema de archivos local
+    os.remove(ruta_absoluta)
+
 
 class FileUtils:
-
+    __NOMBRE_BUCKET = "video_format_converter"
+    __URL_BUCKET = "https://storage.googleapis.com/video_format_converter/"
     def procesar_elemento_cola(self, id):
         logging.info(f"ejecutando cola con id {id}")
 
@@ -61,10 +71,13 @@ class FileUtils:
         logging.info(ruta_absoluta)
         if not os.path.exists(ruta_absoluta):
            os.makedirs(ruta_absoluta)
-
-        archivo_guardado = os.path.join(ruta_absoluta, f"{id}_{archivo.filename}")
-        print(archivo_guardado)
+        nombre_archivo_guardado = f"{id}_{archivo.filename}"
+        archivo_guardado = os.path.join(ruta_absoluta, f"{nombre_archivo_guardado}")
+        print(f'Archivo_original ================> {archivo_guardado}')
         archivo.save(archivo_guardado)
+        self.subir_video_bucket(nombre_archivo_guardado, ruta_absoluta, 'original')
+        #print(archivo_guardado)
+        #archivo.save(archivo_guardado)
 
     def convertir_archivo(self, nombre_archivo, nombre_archivo_convertido):
         ruta_relativa_original = os.path.join('.', 'files/original')
@@ -83,9 +96,12 @@ class FileUtils:
         ruta_absoluta_convertido = os.path.join(ruta_absoluta_convertidos, nombre_archivo_convertido)
 
         ruta_archivo_convertir = os.path.join(ruta_absoluta_original, nombre_archivo)      
-        self.escribir_archivo_convertido(ruta_archivo_convertir, ruta_absoluta_convertido)      
+        self.escribir_archivo_convertido(ruta_archivo_convertir, ruta_absoluta_convertido)
+        self.subir_video_bucket(nombre_archivo_convertido, ruta_absoluta_convertidos, 'convertido')
+        eliminar_archivo(ruta_archivo_convertir)
         
-    def escribir_archivo_convertido(self, ruta_archivo_convertir, ruta_absoluta_convertido):       
+    def escribir_archivo_convertido(self, ruta_archivo_convertir, ruta_absoluta_convertido):
+        print(f"convirtiendo a {ruta_absoluta_convertido}")
         subprocess.call(['ffmpeg', '-i', ruta_archivo_convertir, ruta_absoluta_convertido])
 
     def crear_estado_documento(self, nombre_archivo, estado, extension_original, extension_convertir, usuario_id):
@@ -120,6 +136,13 @@ class FileUtils:
 
     def obtener_estado_tareas_por_id(self, id, usuario_id):
         return EstadoArchivos.query.filter_by(id=id, usuario_id=usuario_id).first()
+
+    def obtener_estado_tareas_por_estado_y_nuevo_archivo(self, id, estado, nombre_archivo):
+        if estado == 'original':
+            return EstadoArchivos.query.filter_by(usuario_id=id, nombre_archivo=nombre_archivo).first()
+        else:
+            return EstadoArchivos.query.filter_by(usuario_id=id, nuevo_archivo=nombre_archivo).first()
+
     
     def obtener_lista_tareas_usuario(self, usuario_id, max, order):
         query = db.session.query(EstadoArchivos)
@@ -140,24 +163,6 @@ class FileUtils:
         return query.all()
     
     def eliminar_tarea(self, estado):
-        ruta_relativa_original = os.path.join('.', 'files/original')
-        ruta_absoluta_original = os.path.abspath(ruta_relativa_original)
-                
-        ruta_archivo_original = os.path.join(ruta_absoluta_original, estado.nombre_archivo)    
-                
-        if os.path.exists(ruta_archivo_original):
-            os.remove(ruta_archivo_original)
-            logging.info(f"archivo {ruta_archivo_original} eliminado")        
-                
-        ruta_relativa_convertidos = os.path.join('.','files/convertido')
-        ruta_absoluta_convertidos = os.path.abspath(ruta_relativa_convertidos)
-        
-        ruta_archivo_convertido = os.path.join(ruta_absoluta_convertidos, estado.nuevo_archivo)    
-        
-        if os.path.exists(ruta_archivo_convertido):
-            os.remove(ruta_archivo_convertido)
-            logging.info(f"archivo {ruta_archivo_convertido} eliminado")
-            
         db.session.delete(estado)
         db.session.commit()                        
 
@@ -196,3 +201,51 @@ class FileUtils:
         else:
             return False
 
+    def subir_video_bucket(self, nombre_archivo, ruta_absoluta_archivo, directorio):
+        print(f"subiendo a bucket  {nombre_archivo}")
+
+        storage_client = storage.Client()
+        bucket = storage_client.bucket(self.__NOMBRE_BUCKET)
+
+        # Guarda el archivo en el sistema de archivos local
+        ruta_local = os.path.join(ruta_absoluta_archivo, f"{nombre_archivo}")
+
+        # Crea un objeto Blob en el bucket
+        blob = bucket.blob(f"{directorio}/{nombre_archivo}")
+
+        # Carga el archivo al bucket desde el sistema de archivos local
+        with open(ruta_local, "rb") as file:
+            blob.upload_from_file(file)
+
+    def descargar_video(self, directorio, nombre_archivo):
+        # Crea un cliente de almacenamiento
+        storage_client = storage.Client()
+
+        # Obtiene el bucket y el objeto (video)
+        bucket = storage_client.bucket(self.__NOMBRE_BUCKET)
+        blob = bucket.blob(f"{directorio}/{nombre_archivo}")
+
+        # Calcula el tiempo de expiración
+        tiempo_expiracion = datetime.utcnow() + timedelta(seconds=3600)
+
+        # Genera la URL de acceso firmada
+        url_firmada = blob.generate_signed_url(expiration=tiempo_expiracion)
+
+        return url_firmada
+
+    def eliminar_archivo(self, id, user_id):
+        # Crea un cliente de almacenamiento
+        storage_client = storage.Client()
+
+        estado_archivo = self.obtener_estado_tareas_por_id(id, user_id)
+
+        if estado_archivo:
+            # Obtiene el bucket y el objeto (video)
+            bucket = storage_client.bucket(self.__NOMBRE_BUCKET)
+            blob = bucket.blob(f"original/{estado_archivo.nombre_archivo}")
+            # Elimina el archivo del bucket
+            blob.delete()
+
+            blob = bucket.blob(f"convertido/{estado_archivo.nuevo_archivo}")
+            # Elimina el archivo del bucket
+            blob.delete()

@@ -1,24 +1,38 @@
-# Use the official Python image as the base image
+######################################################
+#                       TEMPORAL
+######################################################
+# Utiliza una imagen oficial de Python como imagen base
 FROM python:3.9
 
-# Set the working directory in the container
+# Establece el directorio de trabajo en el contenedor
 WORKDIR /app
 
-# Copy the rest of the application code into the container
+# Copia las credenciales del servicio de usuario de almacenamiento
+COPY credentials.json .
+
+# Modifica los permisos
+RUN chmod 775 /app/credentials.json
+
+# Establece la variable de entorno para las credenciales de Google Cloud
+ENV GOOGLE_APPLICATION_CREDENTIALS="/app/credentials.json"
+
+# Copia el resto del código de la aplicación al contenedor
 COPY . .
 
-# Copy the requirements file into the container
-COPY app.py .  
+# Copia el archivo de requisitos en el contenedor
+COPY app.py .
 
-# import ffmpeg
-RUN apt-get -y update
-RUN apt-get install -y ffmpeg
+# Copia el binario de ffmpeg directamente (ajusta la URL según la versión y arquitectura necesaria)
+RUN wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz && \
+    tar -xvf ffmpeg-release-amd64-static.tar.xz && \
+    mv ffmpeg-*-amd64-static/ffmpeg /usr/local/bin/ && \
+    rm -rf ffmpeg-release-amd64-static.tar.xz ffmpeg-*-amd64-static/
 
-# Install dependencies
+# Instala las dependencias de Python
 RUN pip install -r requirements.txt
 
-# Expose the port on which your Flask app will run
+# Expone el puerto en el que se ejecutará tu aplicación Flask
 EXPOSE 5000
 
-# Define the command to start your Flask app
-CMD ["flask", "run", "-h", "0.0.0.0"]
+# Define el comando para iniciar tu aplicación Flask
+CMD ["flask", "run", "--host=0.0.0.0"]
