@@ -1,4 +1,4 @@
-# Bienvenidos al grupo 10 de desarrollo de software en la nube
+![image](https://github.com/kevin96uniandes/MISO2023-desarrollo-nube/assets/123959005/5fd86533-2836-4112-9998-8ba7aaec9049)![image](https://github.com/kevin96uniandes/MISO2023-desarrollo-nube/assets/123959005/7f6fce6e-e487-4851-aef9-5695ebb04dd8)# Bienvenidos al grupo 10 de desarrollo de software en la nube
 
 ### Integrantes
 
@@ -49,7 +49,7 @@ Nuestra aplicación conversor esta diseñada para convertir archvios de video de
 
 11. Procedemos a ejecutar cada servicio, cada servicio tiene configurado su endpoint, request requerida, solo es reemplazar lso datos en la request, parra falcilitar las pruebas, hemos adjuntado estos tres archivos de pruebae un archivo .zip que debe descomprimir [datos de prueba](https://uniandes-my.sharepoint.com/:u:/g/personal/k_maldonadod_uniandes_edu_co/ETTY7tAoSCNHlsqK7etI_iABK1YTLLGJXzXRgRcwIVgCDQ?e=h7tl6r), si deseas mas información de cada uno de lso servicios, pouedes ir a la sección de wiki -> [Documentación servicios de la aplicación](https://github.com/kevin96uniandes/MISO2023-desarrollo-nube/wiki/Documentacion-servicios)
 
-# Pasos para ejecutar nuestra aplicación en docker
+# Pasos para ejecutar nuestra aplicación en GCP
 
 1. Entramos al proyecto creado en Google Cloud GCP
 ![image](https://github.com/kevin96uniandes/MISO2023-desarrollo-nube/assets/123959005/4c3e649c-8e72-45d4-a298-090e058bc4e5)
@@ -83,6 +83,49 @@ maquina virtual flask
 
 NOTA: las maquinas estan apagadas para no consumir los creditos
 
+# Pasos para crear balanceador de carga y grupo de instancias en GCP
+
+1. Creamos una imagen de un disco el cual tenga instalado previamente docker y docker-compose
+![image](https://github.com/kevin96uniandes/MISO2023-desarrollo-nube/assets/123959005/51898bdd-f928-4895-8c6d-35959bf04cc2)
+
+2. Creamos una imagen en base a este disco
+![image](https://github.com/kevin96uniandes/MISO2023-desarrollo-nube/assets/123959005/bcd81543-3fa5-4315-8fce-f735780c4c16)
+
+3. Creamos un image template para asociar al grupo de instancias, el disco de esta instancia debe ser creado en base a la imagen crada anteriormente 
+
+![image](https://github.com/kevin96uniandes/MISO2023-desarrollo-nube/assets/123959005/ed192809-fb21-44d9-8bf7-0579fa210dc1)
+
+![image](https://github.com/kevin96uniandes/MISO2023-desarrollo-nube/assets/123959005/b57156c1-c8d3-40eb-98ee-33c66c75c294)
+
+4. Creamos un grupo de instancias el cual le asociamos nuestro template, y definimos que escale agregando y quitando instancias dinamicamente cuando la CPU sobrepase los 40%
+
+![image](https://github.com/kevin96uniandes/MISO2023-desarrollo-nube/assets/123959005/b94fa95c-39ab-46d8-bd01-698b09660c75)
+
+![image](https://github.com/kevin96uniandes/MISO2023-desarrollo-nube/assets/123959005/dae0cbc1-fff7-4ec8-9900-b905baac3162)
+
+![image](https://github.com/kevin96uniandes/MISO2023-desarrollo-nube/assets/123959005/aea1d861-4d0c-4ca5-a786-cb9bc976444c)
+
+5. Creamos el load balancer difiniendo una ip y puerto en el frontend, asociando al backend nuestro grupo de instancias
+
+![image](https://github.com/kevin96uniandes/MISO2023-desarrollo-nube/assets/123959005/2a8d77ee-2d39-4315-ad4a-dd310efec1d8)
+
+![image](https://github.com/kevin96uniandes/MISO2023-desarrollo-nube/assets/123959005/b9e6d371-2eb0-4e82-815e-7a6c4886cc9d)
+
+![image](https://github.com/kevin96uniandes/MISO2023-desarrollo-nube/assets/123959005/529dc667-dc8b-404b-aee3-2b0fcc53f538)
+
+6. Creamos nuestra base de datos en cloud SQL
+
+![image](https://github.com/kevin96uniandes/MISO2023-desarrollo-nube/assets/123959005/776b61ca-5f2f-43ba-87b2-1c5467629d5c)
+
+7. Creamos nuestro cloud storage
+
+![image](https://github.com/kevin96uniandes/MISO2023-desarrollo-nube/assets/123959005/780afb1e-8ab0-4b93-922d-e37c26ba5fd6)
+
+8. Ejecutamos en postman 
+
+NOTA: las maquinas estan apagadas para no consumir los creditos
+ 
+   
 # Instrucciones de la entrega documental
 
 En la sección de la wiki del repositorio, en el menu lateral izquierdo podras encontrar:
