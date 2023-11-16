@@ -15,7 +15,7 @@ users_schema = UsersSchema()
 fileUtils = FileUtils()
 userRepository = UserRepository()
 
-celery_app = Celery('tasks', broker='redis://redis:6379/0')
+celery_app = Celery('tasks', broker='redis://10.138.0.3:6379/0')
 
 
 @celery_app.task(name='conversor')
