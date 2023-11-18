@@ -108,7 +108,8 @@ def procesar_archivo():
 
             mensaje = {"id": estado_archivo.id}
             args = (estado_archivo.id,)
-            obtener_id_proceso.apply_async(args)
+            #obtener_id_proceso.apply_async(args)
+            fileUtils.pub(args)
         else:
             return mensaje, 400
     else:

@@ -9,7 +9,7 @@ class Config:
     @staticmethod
     def init():
         app = Flask(__name__)
-        app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:postgres@10.128.0.7:5432/conversor'
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:postgres@34.132.16.5:5432/conversor'
         app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
         app.config['JWT_SECRET_KEY'] = 'frase-secreta'
         app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(days=10)
