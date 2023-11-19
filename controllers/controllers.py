@@ -15,7 +15,7 @@ users_schema = UsersSchema()
 fileUtils = FileUtils()
 userRepository = UserRepository()
 
-celery_app = Celery('tasks', broker='redis://redis:6379/0')
+celery_app = Celery('tasks', broker='redis://10.138.0.3:6379/0')
 
 
 @celery_app.task(name='conversor')
@@ -108,7 +108,8 @@ def procesar_archivo():
 
             mensaje = {"id": estado_archivo.id}
             args = (estado_archivo.id,)
-            obtener_id_proceso.apply_async(args)
+            #obtener_id_proceso.apply_async(args)
+            fileUtils.pub(args)
         else:
             return mensaje, 400
     else:

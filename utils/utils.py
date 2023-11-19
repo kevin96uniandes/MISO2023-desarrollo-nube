@@ -1,10 +1,16 @@
-from datetime import datetime, timedelta
+
 import subprocess
+import argparse
+from datetime import datetime, timedelta
+
 from modelos import EstadoArchivos, db, Users
 import os
 import logging
 import re
 from google.cloud import storage
+from google.cloud import pubsub_v1
+import json
+from google.auth import jwt
 
 
 
@@ -15,8 +21,12 @@ def eliminar_archivo(ruta_absoluta):
 
 
 class FileUtils:
-    __NOMBRE_BUCKET = "video_format_converter"
-    __URL_BUCKET = "https://storage.googleapis.com/video_format_converter/"
+    NOMBRE_BUCKET = "video_format_converter_v2"
+    URL_BUCKET = "https://storage.googleapis.com/video_format_converter_v2/"
+    PROJECT_ID = "conversor-grupo-10-v2"
+    TOPIC_ID = "video_format_converter_topic_v2"
+    SUBSCRIPTION = "video_format_converter_topic_v2-sub"
+
     def procesar_elemento_cola(self, id):
         logging.info(f"ejecutando cola con id {id}")
 
@@ -205,7 +215,7 @@ class FileUtils:
         print(f"subiendo a bucket  {nombre_archivo}")
 
         storage_client = storage.Client()
-        bucket = storage_client.bucket(self.__NOMBRE_BUCKET)
+        bucket = storage_client.bucket(self.NOMBRE_BUCKET)
 
         # Guarda el archivo en el sistema de archivos local
         ruta_local = os.path.join(ruta_absoluta_archivo, f"{nombre_archivo}")
@@ -222,7 +232,7 @@ class FileUtils:
         storage_client = storage.Client()
 
         # Obtiene el bucket y el objeto (video)
-        bucket = storage_client.bucket(self.__NOMBRE_BUCKET)
+        bucket = storage_client.bucket(self.NOMBRE_BUCKET)
         blob = bucket.blob(f"{directorio}/{nombre_archivo}")
 
         # Calcula el tiempo de expiración
@@ -241,7 +251,7 @@ class FileUtils:
 
         if estado_archivo:
             # Obtiene el bucket y el objeto (video)
-            bucket = storage_client.bucket(self.__NOMBRE_BUCKET)
+            bucket = storage_client.bucket(self.NOMBRE_BUCKET)
             blob = bucket.blob(f"original/{estado_archivo.nombre_archivo}")
             # Elimina el archivo del bucket
             blob.delete()
@@ -249,3 +259,17 @@ class FileUtils:
             blob = bucket.blob(f"convertido/{estado_archivo.nuevo_archivo}")
             # Elimina el archivo del bucket
             blob.delete()
+
+    def pub(self, id_video) -> None:
+        print("Publishes a message to a Pub/Sub topic.")
+        logging.info(f"ejecutando pub/sub id_video {id_video}")
+        # Initialize a Publisher client.
+        client = pubsub_v1.PublisherClient()
+        # Create a fully qualified identifier of form `projects/{project_id}/topics/{topic_id}`
+        topic_path = client.topic_path(self.PROJECT_ID, self.TOPIC_ID)
+
+        data = {"id_video": id_video}
+        # When you publish a message, the client returns a future.
+        api_future = client.publish(topic_path, json.dumps(data).encode())
+        message_id = api_future.result()
+
