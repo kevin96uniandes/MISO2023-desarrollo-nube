@@ -64,7 +64,7 @@ app.register_blueprint(bluePrintHealthcheckController)
 api = Api(app)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=8080)
     # Espera a que la suscripción termine
     try:
         streaming_pull_future.result()

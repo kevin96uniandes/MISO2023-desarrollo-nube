@@ -1,21 +1,20 @@
 
 import subprocess
-import argparse
 from datetime import datetime, timedelta
 
-from modelos import EstadoArchivos, db, Users
+from modelos import EstadoArchivos, db
 import os
 import logging
+import traceback
 import re
+import requests
 from google.cloud import storage
 from google.cloud import pubsub_v1
 import json
-from google.auth import jwt
-
 
 
 def eliminar_archivo(ruta_absoluta):
-    print(f'Eliminando archivo {ruta_absoluta}')
+    logging.info(f'Eliminando archivo {ruta_absoluta}')
     # Elimina el archivo temporal del sistema de archivos local
     os.remove(ruta_absoluta)
 
@@ -42,15 +41,18 @@ class FileUtils:
                 logging.info('entre webm')
                 self.convertir_archivo(estado_archivo.nombre_archivo, nombre_archivo_convertido)
             if estado_archivo.extension_nueva == 'avi':
-                self.convertir_archivo(estado_archivo.nombre_archivo, nombre_archivo_convertido)
+               self.convertir_archivo(estado_archivo.nombre_archivo, nombre_archivo_convertido)
 
             self.editar_estado_documento(estado_archivo.id, 'convertido', nombre_archivo_convertido,datetime.now())
 
-            print(f"ejecutando cola con id {id} exitoso")
+            logging.info(f"ejecutando cola con id {id} exitoso")
 
         except Exception as e:
-            print(f"error a la hora de procesar la cola con id {id} {e}")
-            self.editar_estado_documento(estado_archivo.id, 'fallido', '', datetime.now())
+            logging.info(f"error a la hora de procesar la cola con id {id} {e}")
+            tb_info = traceback.extract_tb(e.__traceback__)
+            line_number = tb_info[-1].lineno
+
+            self.editar_estado_documento(estado_archivo.id, 'fallido', f"error a la hora de procesar la cola con id {id} {e} {line_number}", datetime.now())
 
 
     def validar_request(self, extension_original, extension_convertir):
@@ -83,16 +85,25 @@ class FileUtils:
            os.makedirs(ruta_absoluta)
         nombre_archivo_guardado = f"{id}_{archivo.filename}"
         archivo_guardado = os.path.join(ruta_absoluta, f"{nombre_archivo_guardado}")
-        print(f'Archivo_original ================> {archivo_guardado}')
+        logging.info(f'Archivo_original ================> {archivo_guardado}')
         archivo.save(archivo_guardado)
         self.subir_video_bucket(nombre_archivo_guardado, ruta_absoluta, 'original')
-        #print(archivo_guardado)
+        #logging.info(archivo_guardado)
         #archivo.save(archivo_guardado)
 
     def convertir_archivo(self, nombre_archivo, nombre_archivo_convertido):
+        
         ruta_relativa_original = os.path.join('.', 'files/original')
         ruta_absoluta_original = os.path.abspath(ruta_relativa_original)
+        ruta_archivo_convertir = os.path.join(ruta_absoluta_original, nombre_archivo)
         
+        url = self.descargar_video('original', nombre_archivo)
+        response = requests.get(url)
+      
+        if response.status_code == 200:
+            with open(ruta_archivo_convertir, 'wb') as archivo_local:
+                archivo_local.write(response.content)
+                
         logging.info(ruta_absoluta_original)
         
         ruta_relativa_convertidos = os.path.join('.','files/convertido')
@@ -105,13 +116,12 @@ class FileUtils:
 
         ruta_absoluta_convertido = os.path.join(ruta_absoluta_convertidos, nombre_archivo_convertido)
 
-        ruta_archivo_convertir = os.path.join(ruta_absoluta_original, nombre_archivo)      
         self.escribir_archivo_convertido(ruta_archivo_convertir, ruta_absoluta_convertido)
         self.subir_video_bucket(nombre_archivo_convertido, ruta_absoluta_convertidos, 'convertido')
         eliminar_archivo(ruta_archivo_convertir)
         
     def escribir_archivo_convertido(self, ruta_archivo_convertir, ruta_absoluta_convertido):
-        print(f"convirtiendo a {ruta_absoluta_convertido}")
+        logging.info(f"convirtiendo a {ruta_absoluta_convertido}")
         subprocess.call(['ffmpeg', '-i', ruta_archivo_convertir, ruta_absoluta_convertido])
 
     def crear_estado_documento(self, nombre_archivo, estado, extension_original, extension_convertir, usuario_id):
@@ -212,7 +222,7 @@ class FileUtils:
             return False
 
     def subir_video_bucket(self, nombre_archivo, ruta_absoluta_archivo, directorio):
-        print(f"subiendo a bucket  {nombre_archivo}")
+        logging.info(f"subiendo a bucket  {nombre_archivo}")
 
         storage_client = storage.Client()
         bucket = storage_client.bucket(self.NOMBRE_BUCKET)
@@ -261,7 +271,7 @@ class FileUtils:
             blob.delete()
 
     def pub(self, id_video) -> None:
-        print("Publishes a message to a Pub/Sub topic.")
+        logging.info("Publishes a message to a Pub/Sub topic.")
         logging.info(f"ejecutando pub/sub id_video {id_video}")
         # Initialize a Publisher client.
         client = pubsub_v1.PublisherClient()

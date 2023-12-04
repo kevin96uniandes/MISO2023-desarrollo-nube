@@ -32,7 +32,7 @@ RUN wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.t
 RUN pip install -r requirements.txt
 
 # Expone el puerto en el que se ejecutará tu aplicación Flask
-EXPOSE 5000
+EXPOSE 8080
 
 # Define el comando para iniciar tu aplicación Flask
-CMD ["flask", "run", "--host=0.0.0.0"]
+CMD ["flask", "run","-p", "8080", "--host=0.0.0.0"]
